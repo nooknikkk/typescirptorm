@@ -1,0 +1,413 @@
+<style>
+
+    /* (A) LIST STYLES */
+.slist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.slist li {
+  margin: 10px;
+  padding: 15px;
+  border: 1px solid #dfdfdf;
+  background: #f5f5f5;
+}
+
+/* (B) DRAG-AND-DROP HINT */
+.slist li.hint {
+  border: 1px solid #ffc49a;
+  background: #feffb4;
+}
+.slist li.active {
+  border: 1px solid #ffa5a5;
+  background: #ffe7e7;
+}
+</style>
+<h1>List</h1>
+<h2 id="action_now">Create</h2>
+<form action="http://localhost:3000/api/list/create" method="POST" id="from_list">
+    <input type="hidden" name="id" id="id">
+    <label for="title">title
+         <input type="text" name="title" id="title">
+    </label>
+    <label for="createBy">createBy
+         <input type="text" name="createBy" id="createBy">
+    </label>
+
+    <button type="button" id="buttonbutton">Save</button>
+</form>
+<br>
+<hr>
+    <h4>List All</h4>
+<ul id="show_data">
+</ul>
+
+
+
+<h1>Task</h1>
+<h2 id="action_now_t">Create</h2>
+<form action="http://localhost:3000/api/task/create" method="POST" id="from_list_t">
+    <input type="hidden" name="id" id="id_t">
+    <label for="list_id">List
+        <select name="list_id" id="list_id_t" style="width: 200px;">
+            <option value="">Select List</option>
+        </select>
+    </label>
+    <label for="title">title
+         <input type="text" name="title" id="title_t">
+    </label>
+    <label for="description">description
+         <input type="description" name="description" id="description_t">
+    </label>
+    <label for="createBy">createBy
+         <input type="text" name="createBy" id="createBy_t">
+    </label>
+     <label for="startDate">startDate
+         <input type="date" name="startDate" id="startDate_t">
+    </label>
+     <label for="endDate">endDate
+         <input type="date" name="endDate" id="endDate_t">
+    </label>
+
+
+    <button type="button" id="buttonbutton_t">Save</button>
+</form>
+<br>
+<hr>
+    <h4>Task All</h4>
+<ul id="show_data_t">
+</ul>
+
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    function uuidv4() {
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+    }
+
+    $(document).ready(function(){
+        $.ajax({
+            url: "http://localhost:3000/api/list", 
+            success: function(result){
+                console.log(result.data);
+                for (let index = 0; index < result.data.length; index++) {
+                    $("#show_data").append("<li id='"+result.data[index].id+"'>"+(index+1)+". title:"+result.data[index].title+"  <button onclick='getupdate_data("+'"'+result.data[index].id+'"'+")'>Update</button> <button onclick='del_data("+'"'+result.data[index].id+'"'+")'>Remove</button></li>");            
+                    
+                    $("#list_id_t").append("<option value='"+result.data[index].id+"'>"+result.data[index].title+"</option>");
+                }
+                    slist($("#show_data")[0]);
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });  
+
+        $.ajax({
+            url: "http://localhost:3000/api/task", 
+            success: function(result){
+                console.log(result.data);
+                for (let index = 0; index < result.data.length; index++) {
+                    $("#show_data_t").append("<li id='"+result.data[index].id+"'>"+(index+1)+". title:"+result.data[index].title+"  <button onclick='getupdate_data_t("+'"'+result.data[index].id+'"'+")'>Update</button> <button onclick='del_data_t("+'"'+result.data[index].id+'"'+")'>Remove</button></li>");                    
+                }
+                    slist($("#show_data_t")[0]);
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });  
+
+
+
+    });
+
+    // insert
+    $("#buttonbutton").click(function(){
+        $("#id").val(uuidv4());
+    $.ajax({
+        type: "POST",
+        data: $("#from_list").serialize(),
+        url: "http://localhost:3000/api/list/create", 
+        success: function(result){
+            alert("success!");
+            location.reload();
+        },
+        error: function (request, status, error) {
+            alert(request.responseText);
+        }
+    });
+  });
+
+
+  // get data update
+  function getupdate_data(data){
+        $.ajax({
+            type: "POST",
+                data: {
+                    id:data
+                },
+            url: "http://localhost:3000/api/list/find", 
+            success: function(result){
+                if(result.status == 200){
+                    $("#action_now").html("Update");
+                    $("#title").val(result.data.title);
+                    $("#createBy").val(result.data.createBy);
+                    $("#id").val(result.data.id);
+                    $("#updateBy").remove();
+                    $("#from_list").append("<label id='updateBy'>updateBy<input type='type' name='updateBy'></label>");
+                    $("#buttonbutton").hide();
+                    $("#btnup").remove();
+                    $("#from_list").append('<button type="button" id="btnup" onclick="update_data();">Update</button>');
+                }
+                console.log(result);
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });
+    }
+
+     //update
+    function update_data(){
+        $.ajax({
+            type: "POST",
+                data: $("#from_list").serialize(),
+            url: "http://localhost:3000/api/list/update", 
+            success: function(result){
+                alert("Update success!");
+            location.reload();
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });
+    }
+
+    //delete
+    function del_data(data){
+        $.ajax({
+            type: "POST",
+                data: {
+                    id:data
+                },
+            url: "http://localhost:3000/api/list/delete", 
+            success: function(result){
+                alert("Remove success!");
+            location.reload();
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    //task
+    // insert
+    $("#buttonbutton_t").click(function(){
+        $("#id_t").val(uuidv4());
+    $.ajax({
+        type: "POST",
+        data: $("#from_list_t").serialize(),
+        url: "http://localhost:3000/api/task/create", 
+        success: function(result){
+            alert("success!");
+            location.reload();
+        },
+        error: function (request, status, error) {
+            alert(request.responseText);
+        }
+    });
+  });
+
+
+  // get data update
+  function getupdate_data_t(data){
+        $.ajax({
+            type: "POST",
+                data: {
+                    id:data
+                },
+            url: "http://localhost:3000/api/task/find", 
+            success: function(result){
+                if(result.status == 200){
+                    $("#action_now_t").html("Update");
+                    $("#title_t").val(result.data.title);
+                    $("#createBy_t").val(result.data.createBy);
+                    $("#id_t").val(result.data.id);
+                    $("#description_t").val(result.data.description);
+                    $("#list_id_t").val(result.data.list_id);
+                    $("#startDate_t").val(result.data.startDate);
+                    $("#endDate_t").val(result.data.endDate);
+                    $("#updateBy_t").remove();
+                    $("#from_list_t").append("<label id='updateBy_t'>updateBy<input type='type' name='updateBy' ></label>");
+                    $("#buttonbutton_t").hide();
+                    $("#btnup_t").remove();
+                    $("#from_list_t").append('<button type="button" id="btnup_t" onclick="update_data_t();">Update</button>');
+                }
+                console.log(result);
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });
+    }
+
+     //update
+    function update_data_t(){
+        $.ajax({
+            type: "POST",
+                data: $("#from_list_t").serialize(),
+            url: "http://localhost:3000/api/task/update", 
+            success: function(result){
+                alert("Update success!");
+            location.reload();
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });
+    }
+
+    //delete
+    function del_data_t(data){
+        $.ajax({
+            type: "POST",
+                data: {
+                    id:data
+                },
+            url: "http://localhost:3000/api/task/delete", 
+            success: function(result){
+                alert("Remove success!");
+            location.reload();
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });
+    }
+
+
+
+
+
+
+
+    function slist (target) {
+  // (A) SET CSS + GET ALL LIST ITEMS
+  target.classList.add("slist");
+  var items = target.getElementsByTagName("li");
+  let current = null;
+//   console.log("drag");
+//    BoxArray = Array.from(items);
+// console.log(items);
+
+// items = Array.from(items);
+// console.log(BoxArray);
+  // (B) MAKE ITEMS DRAGGABLE + SORTABLE
+  for (let i of items) {
+    //   console.log("nik");
+    //   console.log(i);
+    // (B1) ATTACH DRAGGABLE
+    i.draggable = true;
+    
+    // (B2) DRAG START - YELLOW HIGHLIGHT DROPZONES
+    i.ondragstart = (ev) => {
+      current = i;
+      for (let it of items) {
+        if (it != current) { it.classList.add("hint"); }
+      }
+    };
+    
+    // (B3) DRAG ENTER - RED HIGHLIGHT DROPZONE
+    i.ondragenter = (ev) => {
+      if (i != current) { i.classList.add("active"); }
+    };
+
+    // (B4) DRAG LEAVE - REMOVE RED HIGHLIGHT
+    i.ondragleave = () => {
+      i.classList.remove("active");
+    };
+
+    // (B5) DRAG END - REMOVE ALL HIGHLIGHTS
+    i.ondragend = () => { for (let it of items) {
+        it.classList.remove("hint");
+        it.classList.remove("active");
+    }};
+ 
+    // (B6) DRAG OVER - PREVENT THE DEFAULT "DROP", SO WE CAN DO OUR OWN
+    i.ondragover = (evt) => { evt.preventDefault(); };
+ 
+    // (B7) ON DROP - DO SOMETHING
+    i.ondrop = (evt) => {
+      evt.preventDefault();
+      if (i != current) {
+        let currentpos = 0, droppedpos = 0;
+        for (let it=0; it<items.length; it++) {
+          if (current == items[it]) { currentpos = it; }
+          if (i == items[it]) { droppedpos = it; }
+            // console.log($(items[it].id));
+        }
+        if (currentpos < droppedpos) {
+          i.parentNode.insertBefore(current, i.nextSibling);
+        } else {
+          i.parentNode.insertBefore(current, i);
+        }
+      }
+      console.log("drag");
+
+      updatesort(target);
+    };
+  }
+}
+
+
+function updatesort(target){
+
+    // console.log($(target).attr("id"));
+    var data_id = $(target).attr("id");
+
+    if(data_id == "show_data"){
+        var controller = "list";
+    }else{
+        var controller = "task";
+
+    }
+
+    var data = $("#"+data_id+" li");
+    var arr_data = [];
+    for (let index = 0; index < data.length; index++) {
+         arr_data[index] = data[index].id;        
+    }
+    console.log(arr_data);
+
+     $.ajax({
+            type: "POST",
+                data: {
+                    id:arr_data
+                },
+            url: "http://localhost:3000/api/"+controller+"/sort", 
+            success: function(result){
+                alert("SOrt success!");
+            // location.reload();
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+        });
+
+}
+</script>
